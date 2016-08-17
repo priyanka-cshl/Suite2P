@@ -89,7 +89,15 @@ if ops.doRegistration
     end
     
     if ops.showTargetRegistration
-        figure('position', [900 50 900 900])
+        % figure('position', [900 50 900 900]) 
+        scrsz = get(groot,'ScreenSize'); % PG: 7/19/2016
+        figure(998); % PG: 7/19/2016
+        if Lx < scrsz(3)
+            scale_by = (scrsz(3)/3-10)/Lx;
+            set(gcf,'Units', 'pixels','Position',[2*scrsz(3)/3 50 scale_by*Lx+10 scale_by*Ly+10]) % PG: 7/19/2016
+        else
+            set(gcf,'Units', 'pixels','Position',[2*scrsz(3)/3 50 Lx+10 Ly+10]) % PG: 7/19/2016
+        end
         ax = ceil(sqrt(numel(ops1)));
         for i = 1:length(ops1)
             subplot(ax,ax,i)

@@ -85,10 +85,15 @@ B2 = zeros(Nbasis, NN);
 dcell = cell(NN,1);
 
 tic
+scrsz = get(groot,'ScreenSize'); % PG: 8/17/2016
+figure(997); hold on % PG: 8/17/16
+set(gcf, 'Units', 'pixels', 'position', [20+(scrsz(1)/3) 50 250 250]); % PG: 8/17/2016
+
 for iter = 1:10
-    plot(kernelS)
+    %plot(kernelS)
+    figure(997); 
+    plot(kernelS) % PG: 8/17/16
     drawnow
-    
     fprintf('%2.2f sec, iter %d... ', toc, iter)
    
     % determine neuropil and cell contributions
@@ -138,7 +143,7 @@ for iter = 1:10
         kernelS = normc(max(0,kernelS));
     end
     
-    mean(err(:))
+    mean(err(:));
    
 end
 %

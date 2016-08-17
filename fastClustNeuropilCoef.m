@@ -39,7 +39,15 @@ niter   = ops.niterclustering;
 % clear dx dy
 
 if ops.ShowCellMap
-    figure( 'Units', 'pixels', 'position', [100 100 900 900])
+    % figure( 'Units', 'pixels', 'position', [100 100 900 900])
+    scrsz = get(groot,'ScreenSize'); % PG: 7/19/2016
+    figure(999); % PG: 7/19/2016
+    if Lx < scrsz(3)
+        scale_by = (scrsz(3)/3-10)/Lx;
+        set(gcf, 'Units', 'pixels', 'position', [scrsz(3)/3 50 scale_by*Lx+10 scale_by*Ly+10]) % PG: 7/19/2016
+    else
+        set(gcf, 'Units', 'pixels', 'position', [scrsz(3)/3 50 Lx+10 Ly+10]); % PG: 7/19/2016
+    end
     colormap('hsv')
     axes('position', [.05 .05 .925 .925])
     set(gcf, 'Color', 'w')
@@ -194,6 +202,7 @@ for k = 1:niter
         V = max(0, min(.5 * reshape(lam, Ly, Lx)/mean(lam(:)), 1));
         H = reshape(r(iclust), Ly, Lx);
         rgb_image = hsv2rgb(cat(3, H, Sat, V));
+        figure(999); % PG: 7/19/2016
         imagesc(rgb_image)
         axis off
         drawnow
