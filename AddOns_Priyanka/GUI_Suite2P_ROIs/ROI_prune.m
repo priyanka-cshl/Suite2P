@@ -536,7 +536,6 @@ else
     h.polygon = [h.polygon; h.polygon(1,:)];
 end
 guidata(hObject,h);
-
 % Hint: get(hObject,'Value') returns toggle state of define_polygon
 
 
@@ -554,7 +553,6 @@ if ~isempty(h.polygon)
         update_display_mode(hObject, h);
     end
 end
-
 % Hint: get(hObject,'Value') returns toggle state of show_polygon
 
 
