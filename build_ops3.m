@@ -4,7 +4,8 @@ function ops = build_ops3(db, ops)
 ops = addfields(ops, db);
 
 for k = 1:length(db.expts)
-    ops.SubDirs{k}    = num2str(db.expts(k));
+    %ops.SubDirs{k}    = num2str(db.expts(k));
+    ops.SubDirs{k}    = char(db.expts(k));
 end
 
 ops.RootDir = fullfile(ops.RootStorage, ops.mouse_name, ops.date);

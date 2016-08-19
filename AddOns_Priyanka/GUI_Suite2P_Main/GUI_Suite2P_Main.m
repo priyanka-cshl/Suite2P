@@ -115,13 +115,15 @@ if ~isempty (X)
     M =  regexp(char(X(1)),filesep,'split');
     handles.db(y).mouse_name    = char(M(end-2));
     handles.db(y).date = char(M(end-1));
-    handles.db(y).expts =  str2num(char(M(end)));
+    %handles.db(y).expts =  str2num(char(M(end)));
+    handles.db(y).expts(1) =  M(end);
     handles.db(y).nplanes = handles.SetUpSession_TotalSessions.Data(2);
     handles.session_list.String(y:y+size(X,2)-1) = X;
     if size(X,2)>1
         for i = 2:size(X,2)
-            M =  regexp(char(X(i)),'/','split');
-            handles.db(y).expts = [handles.db(y).expts str2num(char(M(end)))];
+            M =  regexp(char(X(i)),filesep,'split');
+            %handles.db(y).expts = [handles.db(y).expts str2num(char(M(end)))];
+            handles.db(y).expts(i) = M(end);
         end
     end
 end
