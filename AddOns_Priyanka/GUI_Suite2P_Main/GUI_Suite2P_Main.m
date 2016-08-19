@@ -62,7 +62,7 @@ handles.computername = textread('hostname.txt','%s');
 % load computer specific settings
 if strcmp(handles.computername,'marbprec')
     handles.filepaths.Data(1) = {'Z:\photoncerber_data'}; % Root storage
-    handles.filepaths.Data(2) = {'C:\Users\florin\Desktop\DATA_processed\'}; % Registration root
+    handles.filepaths.Data(2) = {'C:\Users\florin\Desktop\DATA_processed\'}; % local read/write folder
     handles.filepaths.Data(3) = {'C:\Users\florin\Desktop\DATA_processed\F'}; % Save path
     handles.filepaths.Data(4) = {'C:\Users\florin\Desktop\DATA_processed\R'}; % Registered Tiffs
     handles.cluster_settings.Data(1:2) = [500; 200];
