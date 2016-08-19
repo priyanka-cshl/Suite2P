@@ -10,10 +10,8 @@ GUI_Suite2P_Main.m
     ------------------
     handles.filepaths.Data(1): Root storage path where all your data is located - can be a local server
         The assumed folder heirarchy is RootStorage\MouseName\Date\ExperimentFolder
-        The key restrictions are:
-            ExperimentFolder Name should be a number eg. '1', '2' ..    
-            You can select multiple Experiment folders within one session - these will be treated as data from the same FOV - common registration and ROI extraction
-            You can also specify multiple sessions - these will be analysed independently, but  useful for batch processing.
+        You can select multiple Experiment folders within one session - these will be treated as data from the same FOV - common registration and ROI extraction
+        You can also specify multiple sessions - these will be analysed independently, but  useful for batch processing.
 
     handles.filepaths.Data(2) = Local folder - files will read/written from this location frequently - better if this drive is an SSD
 
