@@ -64,6 +64,10 @@ if flag
     
     if isfield(h.dat, 'dat')
         h.dat = h.dat.dat;
+        h = splitROIleftright_PG(h);
+        h = buildHue(h);
+        h = buildLambdaValue(h);
+        h = update_cell_neuropil_traces(h);
     else
         h.dat.filename = fullfile(filepath1, filename1);
         h.dat.cl.Mrs      = [h.dat.stat.mrs]./[h.dat.stat.mrs0];
@@ -75,9 +79,7 @@ if flag
         h.dat.cl.excluded_regions = zeros(h.dat.cl.Ly, h.dat.cl.Lx);
         h.dat.cl.excl_pix_perc    = zeros(h.dat.cl.Ly, h.dat.cl.Lx);
         h.dat.cl.topregion        = ones(h.dat.cl.Ly, h.dat.cl.Lx);
-%         if isfield(h.dat.stat, 'parent')
-            h = get_parent_stats(h);
-%         end
+        h = get_parent_stats(h);
         
         h.dat.res.iclust = reshape(h.dat.res.iclust, h.dat.cl.Ly, h.dat.cl.Lx);
         
@@ -105,27 +107,8 @@ if flag
         h.dat.cl.nreg_max       = Inf;
         h.dat.cl.VperPix_min    = 0;
         
-        set(h.parent_selection_compactness,'String',num2str(h.dat.cl.mrs_parent_max));
-        set(h.parent_selection_max_pixel_count,'String',num2str(h.dat.cl.npix_par_max));
-        set(h.parent_selection_max_pixel_residual,'String',num2str(h.dat.cl.npix_res_max));
-        set(h.parent_selection_max_region_count,'String',num2str(h.dat.cl.nreg_max));
-        set(h.parent_selection_min_pixel_variance,'String',num2str(h.dat.cl.VperPix_min));
-        
         h = setOriginalThresh(h);
-        
-        % roi inclusion rules - update displayed values
-        set(h.roi_selection_compactness,'String', num2str(h.dat.res.Mrs_thresh));
-        set(h.roi_selection_max_pixel_count,'String', num2str(h.dat.cl.npix_high));
-        set(h.roi_selection_min_pixel_count,'String', num2str(h.dat.cl.npix_low));
-        
-        % set all quadrants as not visited
-        h.quadvalue = zeros(3);
-        for j = 1:3
-            for i = 1:3
-                set(h.(sprintf('Q%d%d', j,i)), 'BackgroundColor',[0 0 0]);
-            end
-        end
-        
+
         % start with unit vector map
         lam = h.dat.res.lambda;
         h.dat.img0.V = max(0, min(1, .5 * reshape(lam, h.dat.cl.Ly, h.dat.cl.Lx)/mean(lam(:))));
@@ -161,6 +144,26 @@ if flag
         h = update_cell_neuropil_traces(h);
     end
     
+    % update parameters display on the GUI
+    set(h.parent_selection_compactness,'String',num2str(h.dat.cl.mrs_parent_max));
+    set(h.parent_selection_max_pixel_count,'String',num2str(h.dat.cl.npix_par_max));
+    set(h.parent_selection_max_pixel_residual,'String',num2str(h.dat.cl.npix_res_max));
+    set(h.parent_selection_max_region_count,'String',num2str(h.dat.cl.nreg_max));
+    set(h.parent_selection_min_pixel_variance,'String',num2str(h.dat.cl.VperPix_min));
+    
+    % roi inclusion rules - update displayed values
+    set(h.roi_selection_compactness,'String', num2str(h.dat.res.Mrs_thresh));
+    set(h.roi_selection_max_pixel_count,'String', num2str(h.dat.cl.npix_high));
+    set(h.roi_selection_min_pixel_count,'String', num2str(h.dat.cl.npix_low));
+    
+    % set all quadrants as not visited
+    h.quadvalue = zeros(3);
+    for j = 1:3
+        for i = 1:3
+            set(h.(sprintf('Q%d%d', j,i)), 'BackgroundColor',[0 0 0]);
+        end
+    end
+    
     h.dat.maxmap = 1;
     ops = h.dat.ops;
     if isfield(ops, 'mimg1') && ~isempty(ops.mimg1)
@@ -173,8 +176,8 @@ if flag
         h.dat.mimg(:,:,h.dat.maxmap) = ops.mimgRED(ops.yrange, ops.xrange);
         h.dat.mimg_proc(:,:,h.dat.maxmap) = normalize_image(h.dat.mimg(:,:,h.dat.maxmap));
     end
-    h.dat.procmap = 0;
     
+    h.dat.procmap = 0;
     h.dat.map = 1;
     
     h.window_size.String = num2str(size(h.dat.F.trace,2));
@@ -297,7 +300,8 @@ update_display_mode(hObject, h); %redraw_figure(h);
 function Save_proc_file_Callback(hObject, eventdata, h)
 h.dat.F.trace = [];
 dat = h.dat;
-save([h.dat.filename(1:end-4) '_proc.mat'], 'dat')
+[file, path] = uiputfile([h.dat.filename(1:end-4) '_proc.mat'],'Save Session As');
+save(fullfile(path, file), 'dat');
 
 function figure1_ResizeFcn(hObject, eventdata, h)
 
@@ -444,14 +448,14 @@ function update_display_mode(hObject, h)
 switch h.display_mode.Value
     case 1 % mean image - green
         h.dat.map = 2;
-        redraw_meanimg(h);
+        redraw_meanimg_PG(h);
     case 2 % mean image - red
         h.dat.map = 3;
-        redraw_meanimg(h);
+        redraw_meanimg_PG(h);
     case 3 % mean image - proc
         h.dat.procmap = 1 -  h.dat.procmap;
         if h.dat.map>1
-            redraw_meanimg(h);
+            redraw_meanimg_PG(h);
         end
     case 4 % ROIs only
         h.dat.map = 1;
@@ -577,3 +581,13 @@ if ~isempty(h.polygon) && h.show_polygon.Value
     guidata(hObject,h);
 end
 % Hint: get(hObject,'Value') returns toggle state of exclude_polygon
+
+
+% --- Executes on button press in rescale_mean_image.
+function rescale_mean_image_Callback(hObject, eventdata, h)
+% hObject    handle to rescale_mean_image (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+update_display_mode(hObject, h); %redraw_figure(h);
+guidata(hObject,h);
+% Hint: get(hObject,'Value') returns toggle state of rescale_mean_image
