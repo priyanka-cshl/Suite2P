@@ -60,16 +60,15 @@ handles.output = hObject;
 handles.computername = textread('hostname.txt','%s');
 
 % load computer specific settings
-if strcmp(handles.computername,'marbprec')
-    handles.filepaths.Data(1) = {'Z:\photoncerber_data'}; % Root storage
-    handles.filepaths.Data(2) = {'C:\Users\florin\Desktop\DATA_processed\'}; % local read/write folder
-    handles.filepaths.Data(3) = {'C:\Users\florin\Desktop\DATA_processed\F'}; % Save path
-    handles.filepaths.Data(4) = {'C:\Users\florin\Desktop\DATA_processed\R'}; % Registered Tiffs
-    handles.cluster_settings.Data(1:2) = [500; 200];
-    handles.cluster_settings.Data(4) = 250;
-    handles.session_list.String = {''};
+handles = My_FilePaths(handles);
+if ~isempty(handles.ops0.toolbox_path)
+    % toolbox
+    if exist(handles.ops0.toolbox_path, 'dir')
+        addpath(handles.ops0.toolbox_path) % add local path to the toolbox
+    else
+        error('toolbox_path does not exist, please change toolbox_path');
+    end
 end
-
 % reposition GUI
 movegui(hObject,'northwest'); 
 
@@ -132,15 +131,6 @@ guidata(hObject, handles);
 
 % --- Executes on button press in make_master_file.
 function make_master_file_Callback(hObject, eventdata, handles)
-
-% toolbox
-toolbox_path = 'C:\Users\florin\Desktop\software\Suite2P_CSHL';
-if exist(toolbox_path, 'dir')
-	addpath(toolbox_path) % add local path to the toolbox
-else
-	error('toolbox_path does not exist, please change toolbox_path');
-end
-handles.ops0.toolbox_path = toolbox_path;
 
 %% root paths for files and temporary storage (ideally an SSD drive)
 % Suite2P assumes a folder structure, check out README file
