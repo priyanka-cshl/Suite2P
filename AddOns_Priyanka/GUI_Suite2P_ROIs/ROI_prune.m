@@ -298,8 +298,8 @@ guidata(hObject,h);
 update_display_mode(hObject, h); %redraw_figure(h);
 
 function Save_proc_file_Callback(hObject, eventdata, h)
-h.dat.F.trace = [];
-dat = h.dat;
+% h.dat.F.trace = [];
+% dat = h.dat;
 %[file, path] = uiputfile([h.dat.filename(1:end-4) '_proc.mat'],'Save Session As');
 %save(fullfile(path, file), 'dat');
 Save_my_traces(h);
@@ -449,13 +449,15 @@ function update_display_mode(hObject, h)
 switch h.display_mode.Value
     case 1 % mean image - green
         h.dat.map = 2;
+        h.dat.procmap = 0;
         redraw_meanimg_PG(h);
     case 2 % mean image - red
         h.dat.map = 3;
         redraw_meanimg_PG(h);
     case 3 % mean image - proc
         h.dat.map = 2;
-        h.dat.procmap = 1 -  h.dat.procmap;
+        %h.dat.procmap = 1 -  h.dat.procmap;
+        h.dat.procmap = 1;
         if h.dat.map>1
             redraw_meanimg_PG(h);
         end
@@ -471,12 +473,16 @@ switch h.display_mode.Value
     case 7 % overlay external ROIs
         % get ROI mask image from independent session
         if isempty(h.ROIs_compare)
-            [filename1,filepath1]=uigetfile('D:\DATA\F\', 'Select ROI image to compare');
-            h.ROIs_compare = load(fullfile(filepath1, filename1));
+            [filename1,filepath1]=uigetfile(fileparts(h.dat.filename), 'Select ROI image to compare');
+            if filename1
+                h.ROIs_compare = load(fullfile(filepath1, filename1));
+            end
         end
-        guidata(hObject,h);
-        h.dat.map = 2;
-        redraw_meanimg_overlay(h,2);
+        if ~isempty(h.ROIs_compare)
+            guidata(hObject,h);
+            h.dat.map = 2;
+            redraw_meanimg_overlay(h,2);
+        end
     case 8 % ROIs vs ROIs
 end
 
