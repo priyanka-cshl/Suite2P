@@ -366,6 +366,32 @@ switch eventdata.Key
     case 'p'
         h.display_mode.Value = 3;
         update_display_mode(hObject, h);
+    case 'rightarrow'
+        roi_list = circshift(h.dat.cl.iscell,size(h.dat.cl.iscell,2)-h.dat.F.ichosen,2);
+        roi_id = find(roi_list,1) + h.dat.F.ichosen;
+        h.dat.F.ichosen = mod(roi_id,size(h.dat.cl.iscell,2));
+        
+        Sat = ones(h.dat.cl.Ly, h.dat.cl.Lx);
+        Sat(h.dat.res.iclust==h.dat.F.ichosen) = 0;
+        h.dat.img1.Sat     = Sat;
+        h.dat.img2.Sat     = Sat;
+        h = buildLambdaValue(h);
+        guidata(hObject,h);
+        update_display_mode(hObject, h);
+        redraw_fluorescence_PG(h);
+    case 'leftarrow'
+        roi_list = circshift(h.dat.cl.iscell,size(h.dat.cl.iscell,2)-h.dat.F.ichosen,2);
+        roi_id =h.dat.F.ichosen - (size(h.dat.cl.iscell,2) -  find(roi_list,2,'last') );
+        h.dat.F.ichosen = mod(roi_id(1),size(h.dat.cl.iscell,2));
+        
+        Sat = ones(h.dat.cl.Ly, h.dat.cl.Lx);
+        Sat(h.dat.res.iclust==h.dat.F.ichosen) = 0;
+        h.dat.img1.Sat     = Sat;
+        h.dat.img2.Sat     = Sat;
+        h = buildLambdaValue(h);
+        guidata(hObject,h);
+        update_display_mode(hObject, h);
+        redraw_fluorescence_PG(h);
 end
 
 % --- Executes on mouse press over figure background, over a disabled or
