@@ -237,7 +237,7 @@ switch  h.mask_type.SelectedObject.String
         h.dat.img0.V = ones(h.dat.cl.Ly, h.dat.cl.Lx);
     case 'VarianceExp'
         % variance explained mask
-        h.dat.img0.V = reshape(h.dat.res.M, h.dat.cl.Ly, h.dat.cl.Lx)/h.dat.cl.MeanM;
+        h.dat.img0.V = reshape(h.dat.res.M, h.dat.cl.Ly, h.dat.cl.Lx) / h.dat.cl.MeanM;
     case 'Binary'
         % unit vector mask
         h.dat.img0.V = 10 * reshape(h.dat.res.lambda, h.dat.cl.Ly, h.dat.cl.Lx);
@@ -300,8 +300,9 @@ update_display_mode(hObject, h); %redraw_figure(h);
 function Save_proc_file_Callback(hObject, eventdata, h)
 h.dat.F.trace = [];
 dat = h.dat;
-[file, path] = uiputfile([h.dat.filename(1:end-4) '_proc.mat'],'Save Session As');
-save(fullfile(path, file), 'dat');
+%[file, path] = uiputfile([h.dat.filename(1:end-4) '_proc.mat'],'Save Session As');
+%save(fullfile(path, file), 'dat');
+Save_my_traces(h);
 
 function figure1_ResizeFcn(hObject, eventdata, h)
 
@@ -453,6 +454,7 @@ switch h.display_mode.Value
         h.dat.map = 3;
         redraw_meanimg_PG(h);
     case 3 % mean image - proc
+        h.dat.map = 2;
         h.dat.procmap = 1 -  h.dat.procmap;
         if h.dat.map>1
             redraw_meanimg_PG(h);
