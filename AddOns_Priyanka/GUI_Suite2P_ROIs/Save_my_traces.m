@@ -45,14 +45,20 @@ for i = 1:Output.total_rois
     Output.traces.neuropil.filtered(i,:) = my_conv_local(medfilt1(temp, 3), 3);
 end
 
-% neuropil subtraction coefficients
+% neuropil subtraction coefficients and events
 count = 0;
 for i = 1:size(Output.rois_indices,1)
     if h.dat.cl.isroi(Output.rois_indices(i,1))
         count = count + 1;
-        Output.traces.neuropil.coeffs = h.dat.cl.dcell{count}.B(2:3);
+        Output.traces.neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
+        
+        % events
+        my_spike_times = zeros(1,Output.total_frames);
+        my_spike_times(1,h.dat.cl.dcell{count}.st) = h.dat.cl.dcell{count}.c;
+        Output.traces.events(i,:) = my_spike_times;
     else
-        Output.traces.neuropil.coeffs = [NaN NaN];
+        Output.traces.neuropil.coeffs(i,:) = [NaN NaN];
+        Output.traces.events(i,1:Output.total_frames) = NaN;
     end
 end
 
