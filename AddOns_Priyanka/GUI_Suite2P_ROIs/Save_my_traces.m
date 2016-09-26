@@ -49,7 +49,7 @@ end
 count = 0;
 for i = 1:size(Output.rois_indices,1)
     if h.dat.cl.isroi(Output.rois_indices(i,1))
-        count = count + 1;
+        count = size(find(h.dat.cl.isroi(1:Output.rois_indices(i,1))),2);
         Output.traces.neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
         
         % events
