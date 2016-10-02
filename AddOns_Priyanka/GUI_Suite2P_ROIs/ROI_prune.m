@@ -53,6 +53,16 @@ try
     end
     [filename1,filepath1]=uigetfile(root, 'Select Data File');
     h.dat = load(fullfile(filepath1, filename1));
+    % if its a processed session file - extract session params
+    % and load the original file
+    %     if isfield(h.dat,'S')
+    %         sessionparams = h.dat.S;
+    %         h = rmfield(h,'dat');
+    %         h.dat.dat = load(sessionparams.filename);
+    %         h.dat.dat.cl = sessionparams.cl;
+    %         h.dat.dat.res = sessionparams.res;
+    %     end
+    
     set(h.figure1, 'Name', filename1);
     flag = 1;
 catch
@@ -62,13 +72,35 @@ if flag
     % if the user selected a file, do all the initializations
     rng('default')
     
+    newsession = 1;
     if isfield(h.dat, 'dat')
-        h.dat = h.dat.dat;
-        h = splitROIleftright_PG(h);
-        h = buildHue(h);
-        h = buildLambdaValue(h);
-        h = update_cell_neuropil_traces(h);
-    else
+        session = h.dat.dat;
+        h = rmfield(h,'dat');
+        
+        % first load the master file
+        h.dat = load(session.filename);
+        
+        % copy over fields
+        sessionfields = fieldnames(session);
+        for i = 1:size(sessionfields,1)
+            if isfield(h.dat,sessionfields(i))
+                h.dat.(sessionfields{i}) = session.(sessionfields{i});
+            end
+        end
+        h.dat.F.ichosen = 1;
+        
+        clear session sessionfields
+        
+        %h.dat = h.dat.dat;
+        %         h = splitROIleftright_PG(h);
+        %         h = buildHue(h);
+        %         h = buildLambdaValue(h);
+        %         h = update_cell_neuropil_traces(h);
+        newsession = 0;
+    end
+    
+    
+    if newsession
         h.dat.filename = fullfile(filepath1, filename1);
         h.dat.cl.Mrs      = [h.dat.stat.mrs]./[h.dat.stat.mrs0];
         h.dat.cl.npix     = [h.dat.stat.npix];
@@ -79,15 +111,13 @@ if flag
         h.dat.cl.excluded_regions = zeros(h.dat.cl.Ly, h.dat.cl.Lx);
         h.dat.cl.excl_pix_perc    = zeros(h.dat.cl.Ly, h.dat.cl.Lx);
         h.dat.cl.topregion        = ones(h.dat.cl.Ly, h.dat.cl.Lx);
-        h = get_parent_stats(h);
-        
         h.dat.res.iclust = reshape(h.dat.res.iclust, h.dat.cl.Ly, h.dat.cl.Lx);
-        
         Nk = h.dat.ops.Nk;
         h.dat.ops.Nk = numel(h.dat.stat);
         h.dat.cl.rands_orig   = .1 + .8 * rand(1, h.dat.ops.Nk);
         h.dat.cl.rands        = h.dat.cl.rands_orig;
-        
+        h = get_parent_stats(h);
+
         if isfield(h.dat, 'clustrules')
             % ROI rules
             h.dat.res.Mrs_thresh_orig = h.dat.clustrules.Compact;
@@ -108,84 +138,88 @@ if flag
         h.dat.cl.VperPix_min    = 0;
         
         h = setOriginalThresh(h);
-
-        % start with unit vector map
-        lam = h.dat.res.lambda;
-        h.dat.img0.V = max(0, min(1, .5 * reshape(lam, h.dat.cl.Ly, h.dat.cl.Lx)/mean(lam(:))));
-        
-        h.dat.ylim = [0 h.dat.cl.Ly];
-        h.dat.xlim = [0 h.dat.cl.Lx];
-        
+    end
+    
+    % start with unit vector map
+    lam = h.dat.res.lambda;
+    h.dat.img0.V = max(0, min(1, .5 * reshape(lam, h.dat.cl.Ly, h.dat.cl.Lx)/mean(lam(:))));
+    
+    h.dat.ylim = [0 h.dat.cl.Ly];
+    h.dat.xlim = [0 h.dat.cl.Lx];
+    
+    if newsession
         h.dat.cl.manual  = zeros(h.dat.ops.Nk, 1);
         h.dat.cl.redcell = zeros(h.dat.ops.Nk, 1);
-        h                = splitROIleftright_PG(h);
-        
-        icell = find(h.dat.cl.iscell);
-        if ~isempty(icell)
-            h.dat.F.ichosen = icell(1); %ceil(rand * numel(icell))
-        else
-            h.dat.F.ichosen = 1; %ceil(rand * numel(icell))
-        end
-        
-        Sat = ones(h.dat.cl.Ly, h.dat.cl.Lx);
-        Sat(h.dat.res.iclust==h.dat.F.ichosen) = 0;
-        h.dat.img1.Sat     = Sat;
-        h.dat.img2.Sat     = Sat;
-        
-        h = buildHue(h);
-        h = buildLambdaValue(h);
-        
-        % x and y limits on subquadrants
-        h.dat.figure.x0all = round(linspace(0, 19/20*h.dat.cl.Lx, 4));
-        h.dat.figure.y0all = round(linspace(0, 19/20*h.dat.cl.Ly, 4));
-        h.dat.figure.x1all = round(linspace(1/20 * h.dat.cl.Lx, h.dat.cl.Lx, 4));
-        h.dat.figure.y1all = round(linspace(1/20 * h.dat.cl.Ly, h.dat.cl.Ly, 4));
-        
-        h = update_cell_neuropil_traces(h);
+    end
+    h                = splitROIleftright_PG(h);
+    
+    icell = find(h.dat.cl.iscell);
+    if ~isempty(icell)
+        h.dat.F.ichosen = icell(1); %ceil(rand * numel(icell))
+    else
+        h.dat.F.ichosen = 1; %ceil(rand * numel(icell))
     end
     
-    % update parameters display on the GUI
-    set(h.parent_selection_compactness,'String',num2str(h.dat.cl.mrs_parent_max));
-    set(h.parent_selection_max_pixel_count,'String',num2str(h.dat.cl.npix_par_max));
-    set(h.parent_selection_max_pixel_residual,'String',num2str(h.dat.cl.npix_res_max));
-    set(h.parent_selection_max_region_count,'String',num2str(h.dat.cl.nreg_max));
-    set(h.parent_selection_min_pixel_variance,'String',num2str(h.dat.cl.VperPix_min));
+    Sat = ones(h.dat.cl.Ly, h.dat.cl.Lx);
+    Sat(h.dat.res.iclust==h.dat.F.ichosen) = 0;
+    h.dat.img1.Sat     = Sat;
+    h.dat.img2.Sat     = Sat;
     
-    % roi inclusion rules - update displayed values
-    set(h.roi_selection_compactness,'String', num2str(h.dat.res.Mrs_thresh));
-    set(h.roi_selection_max_pixel_count,'String', num2str(h.dat.cl.npix_high));
-    set(h.roi_selection_min_pixel_count,'String', num2str(h.dat.cl.npix_low));
+    h = buildHue(h);
+    h = buildLambdaValue(h);
     
-    % set all quadrants as not visited
-    h.quadvalue = zeros(3);
-    for j = 1:3
-        for i = 1:3
-            set(h.(sprintf('Q%d%d', j,i)), 'BackgroundColor',[0 0 0]);
-        end
-    end
+    % x and y limits on subquadrants
+    h.dat.figure.x0all = round(linspace(0, 19/20*h.dat.cl.Lx, 4));
+    h.dat.figure.y0all = round(linspace(0, 19/20*h.dat.cl.Ly, 4));
+    h.dat.figure.x1all = round(linspace(1/20 * h.dat.cl.Lx, h.dat.cl.Lx, 4));
+    h.dat.figure.y1all = round(linspace(1/20 * h.dat.cl.Ly, h.dat.cl.Ly, 4));
     
-    h.dat.maxmap = 1;
-    ops = h.dat.ops;
-    if isfield(ops, 'mimg1') && ~isempty(ops.mimg1)
-        h.dat.maxmap = h.dat.maxmap + 1;
-        h.dat.mimg(:,:,h.dat.maxmap) = ops.mimg1(ops.yrange, ops.xrange);
-        h.dat.mimg_proc(:,:,h.dat.maxmap) = normalize_image(h.dat.mimg(:,:,h.dat.maxmap));
-    end
-    if isfield(ops, 'mimgRED') && ~isempty(ops.mimgRED)
-        h.dat.maxmap = h.dat.maxmap + 1;
-        h.dat.mimg(:,:,h.dat.maxmap) = ops.mimgRED(ops.yrange, ops.xrange);
-        h.dat.mimg_proc(:,:,h.dat.maxmap) = normalize_image(h.dat.mimg(:,:,h.dat.maxmap));
-    end
-    
-    h.dat.procmap = 0;
-    h.dat.map = 1;
-    
-    h.window_size.String = num2str(size(h.dat.F.trace,2));
-    redraw_fluorescence_PG(h);
-    update_display_mode(hObject, h); %redraw_figure(h);
-    
-    guidata(hObject,h)
+    h = update_cell_neuropil_traces(h);
 end
+
+% update parameters display on the GUI
+set(h.parent_selection_compactness,'String',num2str(h.dat.cl.mrs_parent_max));
+set(h.parent_selection_max_pixel_count,'String',num2str(h.dat.cl.npix_par_max));
+set(h.parent_selection_max_pixel_residual,'String',num2str(h.dat.cl.npix_res_max));
+set(h.parent_selection_max_region_count,'String',num2str(h.dat.cl.nreg_max));
+set(h.parent_selection_min_pixel_variance,'String',num2str(h.dat.cl.VperPix_min));
+
+% roi inclusion rules - update displayed values
+set(h.roi_selection_compactness,'String', num2str(h.dat.res.Mrs_thresh));
+set(h.roi_selection_max_pixel_count,'String', num2str(h.dat.cl.npix_high));
+set(h.roi_selection_min_pixel_count,'String', num2str(h.dat.cl.npix_low));
+
+% set all quadrants as not visited
+h.quadvalue = zeros(3);
+for j = 1:3
+    for i = 1:3
+        set(h.(sprintf('Q%d%d', j,i)), 'BackgroundColor',[0 0 0]);
+    end
+end
+
+h.dat.maxmap = 1;
+ops = h.dat.ops;
+if isfield(ops, 'mimg1') && ~isempty(ops.mimg1)
+    h.dat.maxmap = h.dat.maxmap + 1;
+    h.dat.mimg(:,:,h.dat.maxmap) = ops.mimg1(ops.yrange, ops.xrange);
+    h.dat.mimg_proc(:,:,h.dat.maxmap) = normalize_image(h.dat.mimg(:,:,h.dat.maxmap));
+end
+if isfield(ops, 'mimgRED') && ~isempty(ops.mimgRED)
+    h.dat.maxmap = h.dat.maxmap + 1;
+    h.dat.mimg(:,:,h.dat.maxmap) = ops.mimgRED(ops.yrange, ops.xrange);
+    h.dat.mimg_proc(:,:,h.dat.maxmap) = normalize_image(h.dat.mimg(:,:,h.dat.maxmap));
+end
+
+h.dat.procmap = 0;
+h.dat.map = 1;
+
+h.window_size.String = num2str(size(h.dat.F.trace,2));
+redraw_fluorescence_PG(h);
+update_display_mode(hObject, h); %redraw_figure(h);
+
+disp('session loaded');
+
+guidata(hObject,h)
 
 function [h] = update_cell_neuropil_traces(h)
 h.dat.F.Fcell = h.dat.Fcell;

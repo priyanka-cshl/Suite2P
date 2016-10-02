@@ -1,9 +1,10 @@
 function [] = Save_my_traces(h)
 
 % get filename from user
-[file1, path] = uiputfile([h.dat.filename(1:end-4) '_proc.mat'],'Save Session As');
-[~,file2] = fileparts(file1);
-file2 = [file2,'_condensed.mat'];
+timestamp = ['_',datestr(now,'yyyy-mm-dd'),'_',datestr(now,'HH:MM')];
+timestamp = strrep(timestamp,':','-');
+file1 = [h.dat.filename(1:end-4),timestamp,'.mat'];
+file2 = [h.dat.filename(1:end-4),timestamp,'_condensed.mat'];
 
 disp('saving session ...')
 % basic params
@@ -38,13 +39,6 @@ Output.traces.roi.filtered = 0*Output.traces.roi.raw;
 Output.traces.neuropil.raw = h.dat.FcellNeu{1}(Output.rois_indices,:);
 Output.traces.neuropil.filtered = 0*Output.traces.neuropil.raw;
 
-for i = 1:Output.total_rois
-    temp = Output.traces.roi.raw(i,:);
-    Output.traces.roi.filtered(i,:) = my_conv_local(medfilt1(temp, 3), 3);
-    temp = Output.traces.neuropil.raw(i,:);
-    Output.traces.neuropil.filtered(i,:) = my_conv_local(medfilt1(temp, 3), 3);
-end
-
 % neuropil subtraction coefficients and events
 count = 0;
 for i = 1:size(Output.rois_indices,1)
@@ -62,13 +56,16 @@ for i = 1:size(Output.rois_indices,1)
     end
 end
 
-
 % save the condensed traces
-save(fullfile(path,file2), 'Output');
+save(file2, 'Output');
 
-% save the whole session as well
-h.dat.F.trace = [];
+% save session parameters as well
+h.dat = rmfield(h.dat,'Fcell');
+h.dat = rmfield(h.dat,'FcellNeu');
+h.dat = rmfield(h.dat,'F');
 dat = h.dat;
-save(fullfile(path, file1), 'dat');
-disp(['saved files: ', file1, ' & ', file2]);
+save(file1, 'dat');
+disp(['saved files: '])
+disp(file1);
+disp(file2);
 end
