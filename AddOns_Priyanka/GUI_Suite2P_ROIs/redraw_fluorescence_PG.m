@@ -35,6 +35,14 @@ switch MyCase
 end
 set(gca,'TickDir','out','TickLength',[0.002 0.005],'Fontsize',8);
 
+% plot a separator if more than one recording session was concatenated
+if size(h.dat.Fcell,2) > 1
+    for i = 1:size(h.dat.Fcell,2)-1
+        linehandle = line([size(h.dat.Fcell{i},2) size(h.dat.Fcell{i},2)],get(gca,'YLim'),'Color',0.5*[1 1 1],'LineStyle','--');
+        uistack(linehandle,'bottom');
+    end
+end
+
 if h.show_events.Value
     cellID = h.dat.cl.isroi(h.dat.F.ichosen)*...
         size(find(h.dat.cl.isroi(1:h.dat.F.ichosen)),2);
@@ -47,6 +55,13 @@ if h.show_events.Value
         plot(my_spike_times,'r')
         axis tight
         set(gca,'XTick',[],'TickDir','out','TickLength',[0.002 0.005],'Fontsize',8);
+        % plot a separator if more than one recording session was concatenated
+        if size(h.dat.Fcell,2) > 1
+            for i = 1:size(h.dat.Fcell,2)-1
+                linehandle = line([size(h.dat.Fcell{i},2) size(h.dat.Fcell{i},2)],get(gca,'YLim'),'Color',0.5*[1 1 1],'LineStyle','--');
+                uistack(linehandle,'bottom');
+            end
+        end
     end
 end
 end

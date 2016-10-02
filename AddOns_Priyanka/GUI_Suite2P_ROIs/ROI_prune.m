@@ -237,7 +237,7 @@ if isfield(h.dat, 'FcellNeu')
         for k = 1:length(h.dat.F.FcellNeu)
             cellcount = 0;
             for j = 1:size(h.dat.FcellNeu{k},1) % no. of ROIs
-                if h.dat.cl.isroi(k,j)
+                if h.dat.cl.isroi(j)
                     cellcount = cellcount + 1;
                     if isfield(h.dat.cl.dcell{cellcount}, 'B')
                         if ~h.neuropil_subtracted_c.Value
