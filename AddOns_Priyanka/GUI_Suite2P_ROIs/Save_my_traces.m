@@ -11,7 +11,7 @@ disp('saving session ...')
 Output.Lx = h.dat.cl.Lx; % image size
 Output.Ly = h.dat.cl.Ly; % image size
 Output.total_rois = sum(h.dat.cl.iscell); % number of rois chosen
-Output.total_frames = size(h.dat.F.trace,2);
+Output.directories = h.dat.ops.expts;
 
 % to get the indices of chosen rois
 Output.rois_indices = find(h.dat.cl.iscell)';
@@ -34,28 +34,33 @@ if size(h.dat.mimg,3)>2
 end
 
 % fluorescence traces
-Output.traces.roi.raw = h.dat.Fcell{1}(Output.rois_indices,:);
-Output.traces.roi.filtered = 0*Output.traces.roi.raw;
-Output.traces.neuropil.raw = h.dat.FcellNeu{1}(Output.rois_indices,:);
-Output.traces.neuropil.filtered = 0*Output.traces.neuropil.raw;
+start_frame = 1;
+end_frame =  0;
 
-% neuropil subtraction coefficients and events
-count = 0;
-for i = 1:size(Output.rois_indices,1)
-    if h.dat.cl.isroi(Output.rois_indices(i,1))
-        count = size(find(h.dat.cl.isroi(1:Output.rois_indices(i,1))),2);
-        Output.traces.neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
-        
-        % events
-        my_spike_times = zeros(1,Output.total_frames);
-        my_spike_times(1,h.dat.cl.dcell{count}.st) = h.dat.cl.dcell{count}.c;
-        Output.traces.events(i,:) = my_spike_times;
-    else
-        Output.traces.neuropil.coeffs(i,:) = [NaN NaN];
-        Output.traces.events(i,1:Output.total_frames) = NaN;
+for j = 1:size(h.dat.Fcell,2) % each recording session
+    Output.total_frames(j) = size(h.dat.Fcell{j},2);
+    end_frame = end_frame + Output.total_frames(j);
+    Output.traces(j).roi.raw = h.dat.Fcell{j}(Output.rois_indices,:);
+    Output.traces(j).neuropil.raw = h.dat.FcellNeu{j}(Output.rois_indices,:);
+
+    % neuropil subtraction coefficients and events
+    count = 0;
+    for i = 1:size(Output.rois_indices,1)
+        if h.dat.cl.isroi(Output.rois_indices(i,1))
+            count = size(find(h.dat.cl.isroi(1:Output.rois_indices(i,1))),2);
+            Output.traces(j).neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
+            
+            % events
+            my_spike_times = zeros(1,sum(Output.total_frames));
+            my_spike_times(1,h.dat.cl.dcell{count}.st) = h.dat.cl.dcell{count}.c;
+            Output.traces(j).events(i,1:Output.total_frames(j)) = my_spike_times(1,start_frame:end_frame);
+        else
+            Output.traces.neuropil.coeffs(i,:) = [NaN NaN];
+            Output.traces(j).events(i,1:Output.total_frames(j)) = NaN;
+        end
     end
+    start_frame = end_frame + 1;
 end
-
 % save the condensed traces
 save(file2, 'Output');
 
