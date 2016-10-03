@@ -79,6 +79,7 @@ if flag
         
         % first load the master file
         h.dat = load(session.filename);
+        h.dat.filename = session.filename;
         
         % copy over fields
         sessionfields = fieldnames(session);
