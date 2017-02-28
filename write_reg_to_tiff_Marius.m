@@ -1,7 +1,7 @@
-function ops = write_reg_to_tiff(fid, ops, iplane)
+function ops = write_reg_to_tiff_Marius(fid, ops, iplane)
 
 Ly = ops.Ly;
-Lx = ops.Lx;
+Lx = ops.Ly;
 bitspersamp = 16;
 
 frewind(fid);
