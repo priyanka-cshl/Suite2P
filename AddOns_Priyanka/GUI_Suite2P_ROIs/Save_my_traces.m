@@ -45,18 +45,20 @@ for j = 1:size(h.dat.Fcell,2) % each recording session
 
     % neuropil subtraction coefficients and events
     count = 0;
-    for i = 1:size(Output.rois_indices,1)
-        if h.dat.cl.isroi(Output.rois_indices(i,1))
-            count = size(find(h.dat.cl.isroi(1:Output.rois_indices(i,1))),2);
-            Output.traces(j).neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
-            
-            % events
-            my_spike_times = zeros(1,sum(Output.total_frames));
-            my_spike_times(1,h.dat.cl.dcell{count}.st) = h.dat.cl.dcell{count}.c;
-            Output.traces(j).events(i,1:Output.total_frames(j)) = my_spike_times(1,start_frame:end_frame);
-        else
-            Output.traces.neuropil.coeffs(i,:) = [NaN NaN];
-            Output.traces(j).events(i,1:Output.total_frames(j)) = NaN;
+    if isfield(h.dat.cl,'isroi')
+        for i = 1:size(Output.rois_indices,1)
+            if h.dat.cl.isroi(Output.rois_indices(i,1))
+                count = size(find(h.dat.cl.isroi(1:Output.rois_indices(i,1))),2);
+                Output.traces(j).neuropil.coeffs(i,:) = h.dat.cl.dcell{count}.B(2:3);
+                
+                % events
+                my_spike_times = zeros(1,sum(Output.total_frames));
+                my_spike_times(1,h.dat.cl.dcell{count}.st) = h.dat.cl.dcell{count}.c;
+                Output.traces(j).events(i,1:Output.total_frames(j)) = my_spike_times(1,start_frame:end_frame);
+            else
+                Output.traces.neuropil.coeffs(i,:) = [NaN NaN];
+                Output.traces(j).events(i,1:Output.total_frames(j)) = NaN;
+            end
         end
     end
     start_frame = end_frame + 1;
