@@ -95,7 +95,7 @@ function SetUpSession_CLEAR_Callback(hObject, eventdata, handles)
 % hObject    handle to SetUpSession_CLEAR (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.SetUpSession_TotalSessions.Data = [0 1]';
+handles.SetUpSession_TotalSessions.Data = [0 1 1]';
 handles.db = [];
 handles.session_list.String = {''};
 guidata(hObject, handles);
