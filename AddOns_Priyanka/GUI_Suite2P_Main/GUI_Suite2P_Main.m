@@ -22,7 +22,7 @@ function varargout = GUI_Suite2P_Main(varargin)
 
 % Edit the above text to modify the response to help GUI_Suite2P_Main
 
-% Last Modified by GUIDE v2.5 17-Aug-2016 11:53:19
+% Last Modified by GUIDE v2.5 02-Feb-2017 15:53:18
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -117,12 +117,18 @@ if ~isempty (X)
     %handles.db(y).expts =  str2num(char(M(end)));
     handles.db(y).expts(1) =  M(end);
     handles.db(y).nplanes = handles.SetUpSession_TotalSessions.Data(2);
+    % for red channel
+%     handles.db(y).AlignToRedChannel = handles.AlignToRed.Value;
+%     handles.db(y).nchannels_red = 2; % how many channels did the red block have in total (assumes red is last)
     handles.session_list.String(y:y+size(X,2)-1) = X;
     if size(X,2)>1
         for i = 2:size(X,2)
             M =  regexp(char(X(i)),filesep,'split');
             %handles.db(y).expts = [handles.db(y).expts str2num(char(M(end)))];
             handles.db(y).expts(i) = M(end);
+%             if handles.AlignToRed.Value
+%                 handles.db(y).expred(i) = M(end);
+%             end
         end
     end
 end
@@ -171,6 +177,10 @@ handles.ops0.NimgFirstRegistration  =  handles.registration_settings.Data(1);
 % upsampling factor during registration, 
 % 1 for no upsampling is much faster, 2 may give better subpixel accuracy
 handles.ops0.registrationUpsample   = handles.upsample.Value + 1;
+
+% use red channel
+handles.ops0.AlignToRedChannel = handles.AlignToRed.Value;
+handles.ops0.nchannels = handles.SetUpSession_TotalSessions.Data(3);
 
 % % currently unused
 % handles.ops0.nimgbegend = handles.registration_settings_unused.Data(1); % how many frames to average at the beginning and end of each experiment
@@ -247,7 +257,7 @@ for iexp = 1:length(handles.db)
     end
     
     % add red channel information (if it exists)
-    % run_REDaddon(iexp, db, ops0) ;
+     % run_REDaddon(iexp, db, ops0);
 end
 display('done!');
 % handles.make_master_file.String = 'GO';
@@ -255,3 +265,12 @@ display('done!');
 set(hObject,'BackgroundColor',[0.9400 0.9400 0.9400],'String','GO');
 pause(0.5);
 guidata(hObject, handles);
+
+
+% --- Executes on button press in AlignToRed.
+function AlignToRed_Callback(hObject, eventdata, handles)
+% hObject    handle to AlignToRed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of AlignToRed
