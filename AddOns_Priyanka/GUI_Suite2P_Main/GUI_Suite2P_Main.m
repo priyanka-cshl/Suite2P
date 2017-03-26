@@ -97,7 +97,7 @@ function SetUpSession_CLEAR_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.SetUpSession_TotalSessions.Data = [0 1 1]';
 handles.db = [];
-handles.session_list.String = {''};
+handles.session_list.String = {' '};
 guidata(hObject, handles);
 
 
